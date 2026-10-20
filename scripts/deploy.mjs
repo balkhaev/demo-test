@@ -47,13 +47,26 @@ if (!finished) throw new Error('Deployment timed out; inspect it in Coolify befo
 
 const health = await fetch(site + '/api/health', { signal: AbortSignal.timeout(30_000) });
 if (!health.ok || (await health.json()).status !== 'ok') throw new Error('Production health check failed.');
-for (const file of ['index.html', 'app.js', 'styles.css', 'logic-view.js', 'logic-guide.js']) {
+for (const file of ['index.html', 'app.js', 'styles.css', 'logic-view.js', 'logic-guide.js', 'highlight.js']) {
   const response = await fetch(`${site}/${file === 'index.html' ? '' : file}?v=${commit}`, {
     signal: AbortSignal.timeout(30_000),
   });
   const expected = await readFile(new URL('../dist/' + file, import.meta.url), 'utf8');
   if (!response.ok || (await response.text()).replace(/\r\n/g, '\n') !== expected.replace(/\r\n/g, '\n')) {
     throw new Error(`Production file does not match this commit: ${file}`);
+  }
+}
+const guideResponse = await fetch(site + '/api/logic', { signal: AbortSignal.timeout(30_000) });
+if (!guideResponse.ok) throw new Error('Production rule guide is unavailable.');
+const guide = await guideResponse.json();
+if (guide.revision !== commit) throw new Error('GitHub links do not target the deployed commit.');
+const { getLogicGuide } = await import('../server/logic-guide.js');
+const expectedGuide = await getLogicGuide();
+if (guide.rulesVersion !== expectedGuide.rulesVersion) throw new Error('Production rule definitions differ from this checkout.');
+for (const [key, topic] of Object.entries(guide.topics)) {
+  if (JSON.stringify(topic.rules?.map(({ source, ...rule }) => rule)) !==
+      JSON.stringify(expectedGuide.topics[key].rules?.map(({ source, ...rule }) => rule))) {
+    throw new Error('Production pseudocode differs from this checkout: ' + key);
   }
 }
 console.info(`Verified ${commit} at ${site}/#/logic`);

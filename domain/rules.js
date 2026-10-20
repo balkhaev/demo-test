@@ -1,11 +1,13 @@
 import { validateSnapshot } from "./validation.js";
-import { sources, dataUncertainties, requiredChecks } from './evidence.js';
-import { conclusion } from './decision.js';
+import { dataUncertainties, requiredChecks } from './evidence.js';
+import { selectRule, resolveDecision } from './rule-engine.js';
+import { deadlinePriority } from './deadlines.js';
+import { dataRules } from './rules/data.js';
 import { deliveryRules } from './rules/delivery.js';
 import { onboardingRules } from './rules/onboarding.js';
 import { offboardingRules } from './rules/offboarding.js';
-
-export const RULES_VERSION = "2.0.0";
+import { deadlineRules } from './rules/deadline.js';
+import { createHash } from 'node:crypto';
 
 const PRIORITY_ORDER = { urgent: 0, today: 1, "before-start": 2, done: 3 };
 const STATUS_LABELS = {
@@ -14,48 +16,26 @@ const STATUS_LABELS = {
   "before-start": "До срока",
   done: "Без вмешательства",
 };
-/**
- * Only predicates actually evaluated appear in the trace.
- * First matching rule wins; IDs remain stable for UI explanations and tests.
- */
-function runRules(rules, trace) {
-  for (const rule of rules) {
-    const matched = Boolean(rule.when());
-    trace.push({ ruleId: rule.id, title: rule.title, matched, sourceIds: rule.sourceIds });
-    if (matched) return { ...rule.then(), ruleId: rule.id };
-  }
-  throw new Error("Domain rules must include a fallback");
-}
-
-const RULE_SETS = {
+export const RULE_SETS = {
   delivery: deliveryRules,
   onboarding: onboardingRules,
   offboarding: offboardingRules,
 };
 
+// A changed definition gets a new version without a manual version bump.
+export const RULES_VERSION = createHash('sha256')
+  .update(JSON.stringify([dataRules, RULE_SETS, deadlineRules], (_, value) =>
+    typeof value === 'function' ? value.toString().replace(/\r\n/g, '\n') : value))
+  .digest('hex').slice(0, 16);
+
 function evaluateValidatedCase(item, asOf) {
   const inputSnapshot = structuredClone(item);
   const trace = [];
   const uncertainties = dataUncertainties(inputSnapshot);
-  const ids = sources(item);
-  const futureSources = [
-    ["receipt-time", item.crm.receivedAt],
-    ["message-time", item.message.occurredAt],
-    ["crm-update-time", item.sources.crm.updatedAt],
-  ].filter(([, time]) => time !== null && Date.parse(time) > Date.parse(asOf));
-  const dataRule = {
-    id: "DATA.FUTURE_SOURCE",
-    title: "Данные после времени снимка нельзя использовать в его выводе",
-    sourceIds: [ids.crm, ids.message],
-    when: () => futureSources.length > 0,
-    then: () => conclusion("today",
-      "В источниках есть событие позже времени снимка. Сначала нужно проверить даты или выбрать корректное время расчёта.",
-      "Сверить время приёмки, сообщения и обновления CRM со временем снимка.",
-      "Исправить время или пересчитать сводку на момент, включающий эти события.",
-      ["Время событий проверено; все использованные сведения относятся к выбранному снимку."]),
-  };
-  const result = runRules([dataRule, ...RULE_SETS[item.kind](inputSnapshot, asOf)], trace);
-  if (futureSources.length > 0) uncertainties.push({
+  const rule = selectRule([...dataRules, ...RULE_SETS[item.kind]], { ...inputSnapshot, asOf }, trace);
+  const result = resolveDecision(rule, inputSnapshot, asOf, deadlinePriority);
+  const hasFutureSources = result.ruleId === 'DATA.FUTURE_SOURCE';
+  if (hasFutureSources) uncertainties.push({
     code: "SOURCE_AFTER_SNAPSHOT",
     text: "События после выбранного времени снимка требуют ручной проверки дат.",
   });
@@ -63,7 +43,7 @@ function evaluateValidatedCase(item, asOf) {
     uncertainties.push({ code: "DEADLINE_UNKNOWN", text: "Срок операции не указан; срочность по времени нельзя подтвердить." });
   }
   const checks = requiredChecks(inputSnapshot);
-  if (futureSources.length > 0) {
+  if (hasFutureSources) {
     for (const check of checks) if (check.status === "met") check.status = "unknown";
   }
   return {

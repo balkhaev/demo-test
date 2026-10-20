@@ -1,5 +1,6 @@
-import { logicRoute, logicView } from './logic-view.js?v=4';
-import { logicText } from './logic-guide.js?v=4';
+import { logicRoute, logicView } from './logic-view.js?v=5';
+import { logicText } from './logic-guide.js?v=5';
+import { highlight } from './highlight.js?v=5';
 
 const main = document.querySelector('main');
 const h = value => String(value ?? '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[char]);
@@ -11,6 +12,9 @@ const sourceCache = new Map();
 const drafts = new Map();
 const comparisons = new Map();
 let model = null;
+let guide = null;
+let guideError = null;
+let guideLoading = false;
 let initialCases = [];
 let activeFilter = 'all';
 let busy = false;
@@ -22,11 +26,11 @@ let toastTimer;
 function route() {
   const hash = location.hash.slice(1);
   if (!hash || hash === 'summary' || hash === '/summary' || hash === 'main' || hash === 'data') return {name:'summary'};
-  if (hash === 'code') return logicRoute(new URLSearchParams());
+  if (hash === 'code') return logicRoute(new URLSearchParams(), guide?.topics);
   const [path, query] = hash.split('?');
   if (path === '/logic') {
     const params = new URLSearchParams(query);
-    return logicRoute(params);
+    return logicRoute(params, guide?.topics);
   }
   if (path.startsWith('/cases/')) {
     try { return {name:'case',id:decodeURIComponent(path.slice(7))}; }
@@ -103,6 +107,7 @@ async function loadDemo() {
   render();
   try {
     model = await api('/api/demo');
+    if(guide && guide.rulesVersion!==model.rulesVersion) void loadGuide();
     initialCases = structuredClone(model.cases);
     drafts.clear();
     comparisons.clear();
@@ -120,6 +125,7 @@ async function evaluate(caseId) {
   try {
     const result = await api('/api/evaluate',{asOf:model.asOf,cases:candidate});
     model = {...model,...result};
+    if(guide && guide.rulesVersion!==model.rulesVersion) void loadGuide();
     if (caseId) {
       drafts.delete(caseId);
       comparisons.set(caseId,{before,after:model.summary.find(item => item.id === caseId)});
@@ -219,15 +225,34 @@ function missingView() {
   return '<section class="empty-state"><h1>Случай не найден</h1><p>Откройте один из случаев в текущей сводке.</p><a class="btn btn-primary" href="#/summary">Вернуться к сводке</a></section>';
 }
 
+async function loadGuide() {
+  if (guideLoading) return;
+  guideLoading=true;
+  guideError=null;
+  render();
+  try {
+    const result=await api('/api/logic');
+    if(model && result.rulesVersion!==model.rulesVersion) {
+      throw new Error('Версия правил изменилась во время запроса. Пересчитайте сводку и повторите загрузку.');
+    }
+    guide=result;
+    sourceCache.clear();
+  }
+  catch(cause) { guideError=cause; }
+  finally { guideLoading=false; render(); }
+}
+
 async function loadSource(current,version) {
   try {
     let source=sourceCache.get(current.file);
     if(!source) { source=await api('/api/source/'+current.file); sourceCache.set(current.file,source); }
     if(version!==renderVersion) return;
+    if(source.revision!==guide.revision) throw new Error('Сайт обновлён. Перезагрузите страницу, чтобы открыть правила и исходник одной версии.');
     loadedSource=source;
     document.querySelector('#source-path').textContent=source.path;
     const pre=document.querySelector('#code-content');
-    pre.innerHTML=source.content.split('\n').map((line,index)=>`<span class="code-line ${current.rule&&line.includes(current.rule)?'highlight-line':''}"><span class="line-number" aria-hidden="true">${index+1}</span><span>${h(line)||' '}</span></span>`).join('');
+    const selected=guide.topics[current.topic].rules?.find(rule=>rule.id===current.rule)?.source;
+    pre.innerHTML=highlight(source.content,source.language).split('\n').map((line,index)=>`<span class="code-line ${selected&&index+1>=selected.line&&index+1<=selected.endLine?'highlight-line':''}"><a class="line-number" aria-label="Строка ${index+1} в GitHub" href="${h(source.githubUrl)}#L${index+1}" target="_blank" rel="noopener">${index+1}</a><span>${line||' '}</span></span>`).join('');
     pre.setAttribute('aria-busy','false');
     for(const button of main.querySelectorAll('[data-action="copy-code"],[data-action="download-code"]')) button.disabled=false;
     if(current.rule) main.querySelector('.highlight-line')?.scrollIntoView({block:'center'});
@@ -249,11 +274,15 @@ function render(focusTarget) {
     if(active) link.setAttribute('aria-current','page'); else link.removeAttribute('aria-current');
   }
   document.querySelector('#nav-count').textContent=model?.counts.attention??'—';
+  if(current.name==='logic' && (!guide || (model && guide.rulesVersion!==model.rulesVersion))) {
+    main.innerHTML=guideError?`<section class="empty-state" role="alert"><h1>Не удалось загрузить правила</h1><p>${h(guideError.message)}</p><button class="btn btn-primary" data-action="retry-logic">Повторить запрос</button></section>`:'<div class="loading-state" role="status">Получаем исполняемые правила…</div>';
+    return;
+  }
   if(!model && current.name !== 'logic') {
     main.innerHTML=error?`<section class="empty-state" role="alert"><h1>Сервер пока недоступен</h1><p>${h(error.message)}</p><button class="btn btn-primary" data-action="retry">Повторить запрос</button></section>`:'<div class="loading-state" role="status">Получаем сводку с сервера…</div>';
     return;
   }
-  main.innerHTML=current.name==='summary'?summaryView():current.name==='case'?detailView(current.id):current.name==='logic'?logicView(current):missingView();
+  main.innerHTML=current.name==='summary'?summaryView():current.name==='case'?detailView(current.id):current.name==='logic'?logicView(current,guide.topics):missingView();
   if(current.name==='logic' && current.source) void loadSource(current,renderVersion);
   if(current.name==='logic' && current.rule && !current.source) {
     main.querySelector('#selected-rule')?.scrollIntoView({block:'center'});
@@ -273,6 +302,7 @@ main.addEventListener('click',async event=>{
   const action=button.dataset.action;
   const current=route();
   if(action==='reset'||action==='retry') {if(!busy) await loadDemo();}
+  else if(action==='retry-logic') await loadGuide();
   else if(action==='refresh') await evaluate();
   else if(action==='evaluate-case') await evaluate(current.id);
   else if(action==='restore-case'&&!busy) {
@@ -280,7 +310,7 @@ main.addEventListener('click',async event=>{
     await evaluate(current.id);
   } else if(action==='copy-case') await copyText(taskText(model.summary.find(item=>item.id===button.dataset.id)),'Задача скопирована');
   else if(action==='copy-summary') await copyText(model.summary.map(taskText).join('\n\n'),'Полная сводка скопирована');
-  else if(action==='copy-logic') await copyText(logicText(current.topic),'Псевдокод скопирован');
+  else if(action==='copy-logic') await copyText(logicText(guide.topics,current.topic),'Псевдокод скопирован');
   else if(action==='copy-code'&&loadedSource) await copyText(loadedSource.content,'Бизнес-код скопирован');
   else if(action==='download-code'&&loadedSource) {
     const url=URL.createObjectURL(new Blob([loadedSource.content],{type:'text/plain;charset=utf-8'}));
@@ -328,3 +358,4 @@ main.addEventListener('change',event=>{
 
 window.addEventListener('hashchange',()=>{window.scrollTo({top:0});render();});
 void loadDemo();
+void loadGuide();

@@ -1,33 +1,11 @@
-const TIME_ZONE = "Europe/Moscow";
-
-export function calendarDate(timestamp) {
-  const parts = new Intl.DateTimeFormat("en-GB", {
-    timeZone: TIME_ZONE, year: "numeric", month: "2-digit", day: "2-digit",
-  }).formatToParts(new Date(timestamp));
-  const part = (name) => parts.find((value) => value.type === name).value;
-  return `${part("year")}-${part("month")}-${part("day")}`;
-}
-
-export function displayTime(timestamp) {
-  return new Intl.DateTimeFormat("ru-RU", {
-    timeZone: TIME_ZONE, day: "2-digit", month: "2-digit",
-    hour: "2-digit", minute: "2-digit",
-  }).format(new Date(timestamp)) + " МСК";
-}
-
-export function displayDate(date) {
-  return date.split("-").reverse().join(".");
-}
+import { calendarDate, displayDate, displayTime } from './dates.js';
+import { deadlineRules } from './rules/deadline.js';
+import { selectRule } from './rule-engine.js';
+export { calendarDate, displayDate, displayTime } from './dates.js';
 
 /** Date-only deadlines never acquire an invented hour. */
 export function deadlinePriority(item, asOf) {
-  if (item.dueAt && Date.parse(item.dueAt) < Date.parse(asOf)) return "urgent";
-  const dueDay = item.dueDate ?? (item.dueAt ? calendarDate(item.dueAt) : null);
-  if (!dueDay) return "today";
-  const today = calendarDate(asOf);
-  if (dueDay < today) return "urgent";
-  if (dueDay === today) return "today";
-  return "before-start";
+  return selectRule(deadlineRules, { ...item, asOf }).then.priority;
 }
 
 export function deadlineReason(item, asOf) {

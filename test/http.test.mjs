@@ -36,6 +36,19 @@ test('HTTP demo provides a server-computed summary and explicit snapshot time', 
   assert.ok(body.rulesVersion);
 });
 
+test('HTTP guide exposes live rule definitions and GitHub anchors without caching stale rules', async () => {
+  const response = await fetch(base + '/api/logic');
+  assert.equal(response.status, 200);
+  assert.equal(response.headers.get('cache-control'), 'no-store');
+  const guide = await response.json();
+  const result = evaluateBrief(input()).summary[0];
+  const rule = guide.topics.delivery.rules.find(rule => rule.id === result.ruleId);
+  assert.equal(rule.action, result.action);
+  assert.equal(rule.check, result.check);
+  assert.match(rule.source.url, /^https:\/\/github\.com\/balkhaev\/demo-test\/blob\/.+#L\d+-L\d+$/);
+  assert.equal((await fetch(base + '/api/logic', { method: 'POST' })).status, 405);
+});
+
 test('HTTP evaluation changes only the submitted snapshot, never another visitor demo', async () => {
   const changed = input();
   changed.cases.find(item => item.id === 'С-17').crm.documents = 'accepted';
@@ -170,8 +183,8 @@ test('static delivery serves explicit public files and denies directory traversa
   assert.match(page.headers.get('content-type'), /text\/html; charset=utf-8/);
   assert.equal(page.headers.get('cache-control'), 'no-store');
   assert.match(await page.text(), /<script[^>]+type="module"/);
-  for (const file of ['logic-view.js', 'logic-guide.js']) {
-    const module = await fetch(base + '/' + file + '?v=4');
+  for (const file of ['logic-view.js', 'logic-guide.js', 'highlight.js']) {
+    const module = await fetch(base + '/' + file + '?v=5');
     assert.equal(module.status, 200);
     assert.match(module.headers.get('content-type'), /text\/javascript/);
   }

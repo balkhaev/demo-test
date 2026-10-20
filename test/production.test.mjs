@@ -23,7 +23,7 @@ test('Docker runtime files start standalone, including with inherited DevHub var
       const port = probe.address().port;
       await new Promise(resolve => probe.close(resolve));
       const env = Object.fromEntries(Object.entries(process.env).filter(([key]) => !key.startsWith('DEVHUB_')));
-      Object.assign(env, { HOST: '127.0.0.1', PORT: String(port), NODE_ENV: 'production' });
+      Object.assign(env, { HOST: '127.0.0.1', PORT: String(port), NODE_ENV: 'production', SOURCE_COMMIT: 'a'.repeat(40) });
       if (inherited) Object.assign(env, { DEVHUB_ROOT: '/missing-devhub', DEVHUB_MANAGED: '1', DEVHUB_PROJECT: '/missing-project' });
       const child = spawn(process.execPath, ['server/http.js'], { cwd: root, env, stdio: ['ignore', 'pipe', 'pipe'] });
       let log = '';
@@ -48,6 +48,10 @@ test('Docker runtime files start standalone, including with inherited DevHub var
         if (inherited) assert.deepEqual(headers, cleanHeaders); else cleanHeaders = headers;
         assert.equal((await fetch(base + '/api/source/onboarding')).status, 200);
         assert.equal((await fetch(base + '/logic-view.js')).status, 200);
+        assert.equal((await fetch(base + '/highlight.js')).status, 200);
+        const guide = await (await fetch(base + '/api/logic')).json();
+        assert.equal(guide.revision, 'a'.repeat(40));
+        assert.ok(guide.topics.delivery.rules[0].source.url.includes('/blob/' + 'a'.repeat(40) + '/'));
       } finally {
         child.kill();
         await exited;

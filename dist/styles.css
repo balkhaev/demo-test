@@ -345,6 +345,32 @@ input[type="checkbox"] { accent-color: var(--green); width: 15px; height: 15px; 
 .logic-footnote { font-size: 11px; color: var(--muted); line-height: 1.9; padding-top: 12px; }
 .logic-footnote a { color: var(--green); text-decoration: underline; text-underline-offset: 3px; }
 .logic-next { display: flex; flex-wrap: wrap; gap: 10px; padding-top: 18px; }
+.rule-body { min-width: 0; }
+.rule-body h3 { font-size: 12px; font-weight: 600; color: #52665a; margin: 0 0 12px; }
+.rule-code { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; font: 12px/1.9 ui-monospace, "Cascadia Code", Consolas, monospace; color: #33473a; }
+.rule-links { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 17px; margin-top: 13px; font-size: 11px; }
+.rule-links a { color: #476953; text-decoration: underline; text-underline-offset: 3px; }
+.rule-links .rule-permalink { margin-top: 0; }
+.rule-details { margin-top: 13px; color: #52665a; font-size: 11px; line-height: 1.8; }
+.rule-details summary { cursor: pointer; }
+.rule-details p { margin-top: 9px; }
+.rule-details ul { padding-left: 18px; margin: 7px 0 0; }
+.source-github { display: inline-block; color: #356947; margin-top: 14px; font: 11px/1.6 ui-monospace, Consolas, monospace; overflow-wrap: anywhere; text-decoration: underline; text-underline-offset: 3px; }
+.source-revision { display: inline-block; color: #718078; margin: 8px 0 0 12px; font-size: 10px; }
+.syntax-keyword { color: #743db1; font-weight: 600; }
+.syntax-string { color: #256a3d; }
+.syntax-number, .syntax-constant { color: #99601c; }
+.syntax-function { color: #1e6591; }
+.syntax-comment { color: #717c75; font-style: italic; }
+.syntax-operator { color: #607265; }
+.code-box .syntax-keyword { color: #d7adf5; }
+.code-box .syntax-string { color: #a3dca2; }
+.code-box .syntax-number, .code-box .syntax-constant { color: #efc48d; }
+.code-box .syntax-function { color: #8fcff0; }
+.code-box .syntax-comment { color: #a0aca5; }
+.code-box .syntax-operator { color: #becdc3; }
+.code-box .line-number { color: #95a99e; text-decoration: none; }
+.code-box .line-number:hover { color: white; text-decoration: underline; }
 @media (max-width: 580px) {
   .logic-rule { grid-template-columns: 20px minmax(0,1fr); gap: 8px; padding: 15px 12px; }
   .pseudocode { padding: 17px 12px; font-size: 11px; }

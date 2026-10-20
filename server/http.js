@@ -4,23 +4,13 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { resolve, extname } from 'node:path';
 import { evaluateBrief, getDemoBrief } from '../domain/brief-service.js';
 import { DomainInputError } from '../domain/validation.js';
+import { getLogicGuide } from './logic-guide.js';
+import { SOURCE_FILES, readSource } from './source-files.js';
 
 const ROOT = fileURLToPath(new URL('../', import.meta.url));
 const MAX_BODY_BYTES = 64 * 1024;
-const STATIC_FILES = new Set(['index.html', 'styles.css', 'app.js', 'logic-guide.js', 'logic-view.js']);
+const STATIC_FILES = new Set(['index.html', 'styles.css', 'app.js', 'logic-guide.js', 'logic-view.js', 'highlight.js']);
 const CONTENT_TYPES = { '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8' };
-const SOURCE_FILES = Object.freeze({
-  rules: { path: 'domain/rules.js', language: 'javascript' },
-  delivery: { path: 'domain/rules/delivery.js', language: 'javascript' },
-  onboarding: { path: 'domain/rules/onboarding.js', language: 'javascript' },
-  offboarding: { path: 'domain/rules/offboarding.js', language: 'javascript' },
-  deadlines: { path: 'domain/deadlines.js', language: 'javascript' },
-  evidence: { path: 'domain/evidence.js', language: 'javascript' },
-  service: { path: 'domain/brief-service.js', language: 'javascript' },
-  validation: { path: 'domain/validation.js', language: 'javascript' },
-  tests: { path: 'test/engine.test.mjs', language: 'javascript' },
-  prompt: { path: 'prompts/extract-facts.txt', language: 'text' },
-});
 
 class HttpError extends Error {
   constructor(status, code, message) {
@@ -79,6 +69,10 @@ async function route(request, response) {
     send(response, 200, getDemoBrief());
     return;
   }
+  if (request.method === 'GET' && path === '/api/logic') {
+    send(response, 200, await getLogicGuide());
+    return;
+  }
   if (request.method === 'POST' && path === '/api/evaluate') {
     const input = await readJson(request);
     send(response, 200, evaluateBrief(input));
@@ -87,12 +81,11 @@ async function route(request, response) {
   if (request.method === 'GET' && path.startsWith('/api/source/')) {
     const key = path.slice('/api/source/'.length);
     if (!Object.hasOwn(SOURCE_FILES, key)) throw new HttpError(404, 'SOURCE_NOT_FOUND', 'Этот исходный файл не опубликован.');
-    const source = SOURCE_FILES[key];
-    send(response, 200, { ...source, content: await readFile(resolve(ROOT, source.path), 'utf8') });
+    send(response, 200, await readSource(key));
     return;
   }
   if (path.startsWith('/api/')) {
-    if (path === '/api/evaluate' || path === '/api/demo' || path === '/api/health') {
+    if (['/api/evaluate', '/api/demo', '/api/health', '/api/logic'].includes(path)) {
       throw new HttpError(405, 'METHOD_NOT_ALLOWED', 'Этот HTTP-метод не поддерживается для данного адреса.');
     }
     throw new HttpError(404, 'NOT_FOUND', 'API-метод не найден.');

@@ -3,34 +3,33 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#f4f5f2">
-  <meta name="description" content="Интерактивная сводка поддержки: факты, приоритеты и следующие действия. Демо с открытым исходным кодом.">
-  <title>Сводка — Руссмаркет</title>
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%232b503d'/%3E%3Cpath d='M18 21h28M18 32h20M18 43h13' stroke='%23e9efc9' stroke-width='5' stroke-linecap='round'/%3E%3C/svg%3E">
+  <meta name="theme-color" content="#f5f6f8">
+  <meta name="description" content="Сводка поддержки Руссмаркет: приоритеты, факты из CRM и переписки, следующий шаг. Интерактивное демо с открытым кодом.">
+  <title>Сводка поддержки — Руссмаркет</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%232c593f'/%3E%3Cpath d='M9 10h14M9 16h10M9 22h6' stroke='white' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E">
   <link rel="stylesheet" href="styles.css">
   <script type="module" src="app.js"></script>
 </head>
 <body>
-  <a class="skip" href="#main">К содержимому</a>
-  <div class="app-shell">
-    <aside class="sidebar" aria-label="Навигация">
-      <a class="brand" href="#summary"><span class="brand-icon" aria-hidden="true"><i></i><i></i><i></i></span><span>сводка<span class="brand-dot">.</span></span></a>
-      <div class="workspace-label">РУССМАРКЕТ <span>/ SUPPORT</span></div>
-      <nav class="navigation">
-        <a href="#summary" data-nav="summary"><span class="nav-symbol">▤</span>Обзор<span class="nav-count" id="nav-count">3</span></a>
-        <a href="#data" data-nav="data"><span class="nav-symbol">≡</span>Исходные данные</a>
-        <a href="#code" data-nav="code"><span class="nav-symbol code-symbol">&lt;/&gt;</span>Как это устроено</a>
+  <a class="skip-link" href="#main">К содержимому</a>
+  <header class="app-header">
+    <div class="header-inner">
+      <a class="brand" href="#summary" aria-label="Сводка — главная"><span class="brand-mark" aria-hidden="true">≡</span>сводка<span class="brand-dot">.</span></a>
+      <span class="workspace">РУССМАРКЕТ <span>/ SUPPORT</span></span>
+      <nav class="navigation" aria-label="Основная навигация">
+        <a href="#summary" data-nav="summary">Сводка <span id="nav-count">3</span></a>
+        <a href="#data" data-nav="data">Данные <span class="change-dot" id="change-dot" hidden aria-label="Есть изменения"></span></a>
+        <a href="#code" data-nav="code">Код и логика</a>
       </nav>
-      <div class="sidebar-note"><span class="live-dot"></span>Интерактивное демо<p>Четыре случая.<br>Один понятный список дел.</p></div>
-      <div class="sidebar-footer"><span class="avatar">МБ</span><div>Михаил Бальхаев<small>AI-автоматизация</small></div><span class="tiny-arrow">↗</span></div>
-    </aside>
-    <div class="main-shell">
-      <header class="topbar"><div class="breadcrumb">Рабочее пространство <span>/</span> <strong id="crumb">Обзор</strong></div><span class="demo-badge">Демо-данные</span></header>
-      <main id="main" tabindex="-1"></main>
-      <footer class="page-footer"><span>Ясность в данных. Порядок в действиях.</span><span>Руссмаркет · Тестовое задание</span></footer>
+      <span class="demo-badge"><span aria-hidden="true"></span>Демо</span>
     </div>
-  </div>
+  </header>
+  <main id="main" tabindex="-1"></main>
+  <footer class="page-footer">
+    <span>Демо-данные · Расчёт по правилам · CRM и ИИ не подключены</span>
+    <a href="https://github.com/balkhaev/demo-test" target="_blank" rel="noopener">Исходники на GitHub ↗</a>
+  </footer>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
-  <noscript>Для интерактивной сводки включите JavaScript. Исходный код доступен в engine.js, данные — в data.js.</noscript>
+  <noscript>Для интерактивной сводки включите JavaScript. Исходники доступны на GitHub по ссылке ниже.</noscript>
 </body>
 </html>

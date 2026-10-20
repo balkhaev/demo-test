@@ -3,15 +3,29 @@ export function topicForRule(topics, id) {
 }
 
 export function branchText(rule, index) {
-  const condition = rule.condition === 'ИНАЧЕ'
-    ? 'ИНАЧЕ' : `${index ? 'ИНАЧЕ ЕСЛИ' : 'ЕСЛИ'} ${rule.condition}`;
-  return `${condition}:\n  ПРИОРИТЕТ ${rule.priority}` +
-    (rule.action ? `\n  ДЕЙСТВИЕ ${JSON.stringify(rule.action)}` : '');
+  const condition = `${index ? 'Иначе, если' : 'Если'} ${rule.condition}`;
+  return `${condition}${condition.includes('\n') ? '' : ':'}\n\n` +
+    `Решение: ${priorityText(rule.priority)}.` +
+    (rule.action ? `\nДействие: ${rule.action}` : '');
+}
+
+export function priorityText(priority) {
+  return {
+    'СЕЙЧАС': 'проверить сейчас',
+    'СЕГОДНЯ': 'решить сегодня',
+    'ДО СРОКА': 'решить до наступления срока',
+    'БЕЗ ДЕЙСТВИЙ': 'отдельная задача не нужна',
+    'ПО СРОКУ': 'определить по сроку операции',
+  }[priority] ?? priority;
 }
 
 export function logicText(topics, key) {
   const topic = topics[key];
   return [topic.name, topic.note, topic.code,
+    ...(topic.preflight ?? []).map(rule => 'Сначала для любого случая:\n' + branchText(rule, 0)),
+    ...(topic.groups ?? []).map(group => group.name + '\n' + group.rules.map((rule, index) =>
+      `${index + 1}. ${rule.title}\n${branchText(rule, index)}\n${rule.source.url}`
+    ).join('\n\n')),
     ...(topic.rules ?? []).map((rule, index) => `${branchText(rule, index)}\n  // ${rule.id}\n  // ${rule.source.url}`),
   ].filter(Boolean).join('\n\n');
 }

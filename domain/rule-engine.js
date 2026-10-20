@@ -30,11 +30,12 @@ export function resolveDecision(rule, item, asOf, deadlinePriority) {
 }
 
 /** No parallel condition/action descriptions: render the executable definition. */
-export function describeRule(rule) {
+export function describeRule(rule, options) {
   return {
     id: rule.id,
     title: rule.title,
-    condition: rule.when === true ? 'ИНАЧЕ' : describe(rule.when),
+    condition: rule.when === true ? 'ни одно из условий выше не подошло' : describe(rule.when, options),
+    fallback: rule.when === true,
     priority: PRIORITY_NAMES[rule.then.priority],
     action: rule.then.action ?? '',
     check: rule.then.check ?? '',

@@ -1,5 +1,5 @@
-import { topicForRule, branchText } from './logic-guide.js?v=5';
-import { highlight } from './highlight.js?v=5';
+import { topicForRule, branchText, priorityText } from './logic-guide.js?v=6';
+import { highlight } from './highlight.js?v=6';
 
 const escape = value => String(value ?? '').replace(/[&<>"']/g, char =>
   ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
@@ -33,6 +33,24 @@ function ruleCard(rule, index, current) {
     ${selected ? '<span class="rule-selected-label">Из выбранного случая</span>' : ''}</div></div></article>`;
 }
 
+function overviewView(topic) {
+  return `<div class="logic-overview">
+    <section class="overview-preflight"><h3>Сначала — проверить время данных</h3>
+      <p>Для любого случая, до проверки поставки, приёма или увольнения:</p>
+      ${topic.preflight.map(rule => `<pre class="rule-code overview-condition">${highlight(branchText(rule, 0), 'pseudo')}</pre>
+        <a href="#/logic?rule=${encodeURIComponent(rule.id)}">Подробнее об этой проверке →</a>`).join('')}
+    </section>
+    <p class="overview-instruction">Если даты в порядке, выбираем вид случая. Проверяем правила по порядку: первое подходящее даёт решение, следующие уже не нужны.</p>
+    ${topic.groups.map(group => `<section class="overview-group">
+      <h3><a href="#/logic?topic=${group.key}">${escape(group.name)}</a> <span>${group.rules.length} ${group.rules.length === 4 ? 'правила' : 'правил'}</span></h3>
+      <ol>${group.rules.map(rule => `<li>
+        <a href="#/logic?rule=${encodeURIComponent(rule.id)}">${escape(rule.title)} <span aria-hidden="true">→</span></a>
+        <span class="overview-outcome">${escape(priorityText(rule.priority))}</span>
+      </li>`).join('')}</ol>
+    </section>`).join('')}
+  </div>`;
+}
+
 export function logicView(current, topics) {
   const topic = topics[current.topic];
   return `<section aria-labelledby="page-title">
@@ -63,6 +81,7 @@ export function logicView(current, topics) {
         ${current.source ? sourceView() : `<div class="pseudocode-panel">
           <div class="pseudo-toolbar"><span>${topic.rules ? 'Из исполняемых правил' : 'Логика'} · ${escape(topic.name)}</span><button data-action="copy-logic">Копировать</button></div>
           ${topic.code ? `<pre class="pseudocode" tabindex="0" aria-label="Псевдокод">${highlight(topic.code, current.topic === 'prompt' ? 'text' : 'pseudo')}</pre>` : ''}
+          ${topic.groups ? overviewView(topic) : ''}
           ${(topic.rules ?? []).map((rule, index) => ruleCard(rule, index, current)).join('')}
         </div>
         ${topic.example ? '<p class="logic-footnote">Перед этими правилами: <a href="#/logic?rule=DATA.FUTURE_SOURCE">проверка времени источников</a>. «По сроку»: <a href="#/logic?topic=priority">как определяется приоритет</a>.</p>' : ''}`}

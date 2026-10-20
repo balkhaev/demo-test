@@ -1,7 +1,7 @@
 const escape = value => value.replace(/[&<>"']/g, char =>
   ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
 const JS_KEYWORDS = new Set(('import from export const let var function return if else for of in while switch case break default throw new typeof instanceof async await try catch finally class extends true false null undefined').split(' '));
-const PSEUDO_KEYWORDS = new Set(('ЕСЛИ ИНАЧЕ И ИЛИ НЕ ДА НЕТ НЕИЗВЕСТНО ПРИОРИТЕТ ДЕЙСТВИЕ ДЛЯ ПРОВЕРИТЬ ВЫБРАТЬ ВЕРНУТЬ').split(' '));
+const PSEUDO_KEYWORDS = new Set(['ЕСЛИ', 'ИНАЧЕ', 'РЕШЕНИЕ', 'ДЕЙСТВИЕ', 'ПРОВЕРИТЬ']);
 
 /** Presentation-only lexer. Every source character is escaped; code is never executed. */
 export function highlight(code, language = 'javascript') {
@@ -16,7 +16,7 @@ export function highlight(code, language = 'javascript') {
     const kind = value.startsWith('//') || value.startsWith('/*') ? 'comment'
       : /^["'`]/.test(value) ? 'string'
       : /^\d/.test(value) ? 'number'
-      : keywords.has(value) ? 'keyword'
+      : keywords.has(language === 'pseudo' ? value.toUpperCase() : value) ? 'keyword'
       : /^[A-ZА-ЯЁ][A-ZА-ЯЁ_]+$/u.test(value) ? 'constant'
       : /^\s*\(/.test(code.slice(match.index + value.length)) ? 'function'
       : /^[{}()[\],;:=<>!&|?+*/-]+$/.test(value) ? 'operator'

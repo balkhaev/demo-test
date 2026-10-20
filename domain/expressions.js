@@ -44,40 +44,4 @@ export function evaluate(expression, context) {
   }
 }
 
-const FIELDS = {
-  'crm.completed': 'CRM.завершено',
-  'crm.receivedAt': 'CRM.время_приёмки',
-  'crm.documents': 'CRM.документы',
-  'crm.managerApproved': 'CRM.согласование',
-  'message.signal': 'сообщение.сигнал',
-  'message.occurredAt': 'сообщение.время',
-  'sources.crm.updatedAt': 'CRM.время_обновления',
-  dueAt: 'срок.точное_время',
-  dueDate: 'срок.дата',
-  asOf: 'снимок.время',
-};
-const VALUES = {
-  missing: 'недостача', delay: 'задержка', received: 'получено',
-  incomplete: 'неполный комплект', accepted: 'приняты', pending: 'ожидаются',
-};
-
-export function describe(expression) {
-  if (expression === true) return 'ДА';
-  if (expression === false) return 'НЕТ';
-  if (expression === null) return 'НЕИЗВЕСТНО';
-  if (typeof expression === 'string') return JSON.stringify(VALUES[expression] ?? expression);
-  if (typeof expression !== 'object') return String(expression);
-  const show = describe;
-  switch (expression.op) {
-    case 'field': return FIELDS[expression.path] ?? expression.path;
-    case 'eq': return `${show(expression.left)} = ${show(expression.right)}`;
-    case 'not': return `НЕ (${show(expression.value)})`;
-    case 'all': return expression.values.map(value => `(${show(value)})`).join(' И ');
-    case 'any': return expression.values.map(value => `(${show(value)})`).join(' ИЛИ ');
-    case 'before': return `${show(expression.left)} < ${show(expression.right)}`;
-    case 'instant': return `МОМЕНТ(${show(expression.value)})`;
-    case 'day': return `ДЕНЬ_МСК(${show(expression.value)})`;
-    case 'otherwise': return `ПЕРВОЕ_ИЗВЕСТНОЕ(${show(expression.left)}, ${show(expression.right)})`;
-    default: throw new Error('Unknown rule expression: ' + expression.op);
-  }
-}
+export { describe } from './rule-language.js';

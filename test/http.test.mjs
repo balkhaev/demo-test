@@ -184,7 +184,7 @@ test('static delivery serves explicit public files and denies directory traversa
   assert.equal(page.headers.get('cache-control'), 'no-store');
   assert.match(await page.text(), /<script[^>]+type="module"/);
   for (const file of ['logic-view.js', 'logic-guide.js', 'highlight.js']) {
-    const module = await fetch(base + '/' + file + '?v=5');
+    const module = await fetch(base + '/' + file + '?v=6');
     assert.equal(module.status, 200);
     assert.match(module.headers.get('content-type'), /text\/javascript/);
   }

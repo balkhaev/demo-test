@@ -347,7 +347,19 @@ input[type="checkbox"] { accent-color: var(--green); width: 15px; height: 15px; 
 .logic-next { display: flex; flex-wrap: wrap; gap: 10px; padding-top: 18px; }
 .rule-body { min-width: 0; }
 .rule-body h3 { font-size: 12px; font-weight: 600; color: #52665a; margin: 0 0 12px; }
-.rule-code { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; font: 12px/1.9 ui-monospace, "Cascadia Code", Consolas, monospace; color: #33473a; }
+.rule-code { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; font: inherit; font-size: 13px; line-height: 1.85; color: #33473a; }
+.logic-overview { padding: 20px; font-size: 13px; line-height: 1.8; color: #42574a; }
+.logic-overview h3 { font-size: 14px; margin: 0 0 8px; color: #284d36; }
+.logic-overview a { color: #356947; text-decoration: underline; text-underline-offset: 3px; }
+.overview-preflight { background: #f3f7f3; padding: 16px; border-radius: 6px; }
+.overview-condition { margin: 12px 0; padding-left: 10px; border-left: 2px solid #bed4c3; }
+.overview-instruction { margin: 20px 0; }
+.overview-group + .overview-group { border-top: 1px solid #e5ece7; margin-top: 23px; padding-top: 20px; }
+.overview-group h3 > span { margin-left: 8px; font-size: 11px; color: #718078; font-weight: 400; }
+.overview-group ol { margin: 0; padding-left: 25px; }
+.overview-group li { padding: 8px 0 8px 4px; }
+.overview-group li::marker { color: #718078; font-size: 12px; }
+.overview-outcome { display: block; color: #718078; font-size: 11px; }
 .rule-links { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 17px; margin-top: 13px; font-size: 11px; }
 .rule-links a { color: #476953; text-decoration: underline; text-underline-offset: 3px; }
 .rule-links .rule-permalink { margin-top: 0; }

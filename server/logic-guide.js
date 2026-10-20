@@ -10,7 +10,7 @@ const SECTIONS = {
     name: 'Весь процесс', file: 'rules',
     input: 'Снимок CRM, сообщения и время оценки',
     output: 'Очередь с причиной, проверкой и следующим шагом',
-    note: 'Для каждого случая применяется первое совпадение. Сводка предлагает действия; подтверждения и сообщения остаются за сотрудником.',
+    note: 'Ниже перечислены все проверки в порядке выполнения. Как только условия одного правила выполнены, используем его решение и останавливаем проверку этого случая.',
   },
   delivery: {
     name: 'Поставка', file: 'delivery', example: 'П-08',
@@ -34,7 +34,7 @@ const SECTIONS = {
     name: 'Сроки и приоритет', file: 'priority',
     input: 'Плановый срок + время снимка',
     output: 'Сейчас / сегодня / до срока',
-    note: 'Эти правила вычисляют «По сроку». ДЕНЬ_МСК берёт календарный день по Москве; МОМЕНТ сравнивает точное время. Неизвестное время не задаёт порядок событий.',
+    note: '«По сроку» означает выбрать срочность по этим проверкам. Все даты считаются по Москве относительно времени расчёта. Если задан только день, точный час не придумываем.',
   },
   validation: {
     name: 'Качество данных', file: 'data',
@@ -63,18 +63,16 @@ export async function getLogicGuide() {
     const source = await readSource(topic.file);
     topic.source = { path: source.path, url: source.githubUrl, revision: source.revision };
     if (groups[key]) {
-      topic.rules = groups[key].map(rule => ({ ...describeRule(rule), source: ruleSource(source, rule.id) }));
+      topic.rules = groups[key].map(rule => ({ ...describeRule(rule, { kind: key }), source: ruleSource(source, rule.id) }));
     }
     if (key === 'tests') {
       topic.code = [...source.content.matchAll(/test\("([^"]+)"/g)].map(([, title]) => 'ПРОВЕРИТЬ ' + title).join('\n');
     }
     if (key === 'prompt') topic.code = source.content;
   }));
-  topics.overview.code = Object.entries(RULE_SETS).map(([kind, rules]) =>
-    `ДЛЯ «${topics[kind].name}»:\n` +
-    dataRules.map(rule => `  ПРОВЕРИТЬ ${rule.id}`).join('\n') +
-    `\n  ВЫБРАТЬ первое совпадение из ${rules.length} правил` +
-    '\n  ВЕРНУТЬ приоритет, проверку и действие'
-  ).join('\n\n');
+  topics.overview.preflight = topics.validation.rules;
+  topics.overview.groups = Object.keys(RULE_SETS).map(key => ({
+    key, name: topics[key].name, rules: topics[key].rules,
+  }));
   return { topics, rulesVersion: RULES_VERSION, revision: SOURCE_REVISION };
 }

@@ -6,6 +6,6 @@
   "scripts": {
     "start": "node server/http.js",
     "test": "node --test",
-    "check": "node --check server/http.js && node --check domain/rules.js && node --check domain/validation.js && node --check domain/brief-service.js && node --check dist/app.js && node --test"
+    "check": "node scripts/check.mjs && node --test"
   }
 }

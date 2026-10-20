@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "mode": "mvp",
+  "stageBranch": "stage",
+  "releaseBranch": "main",
+  "remote": "origin",
+  "worktreeRoot": "F:/worktrees/demo-test",
+  "checks": ["npm run check"],
+  "deploy": "node scripts/deploy.mjs"
+}

@@ -144,6 +144,20 @@ test('published source is limited to actual business files', async () => {
   assert.equal(source.path, 'domain/brief-service.js');
   assert.equal(source.language, 'javascript');
   assert.match(source.content, /export function evaluateBrief/);
+  for (const [key, path] of Object.entries({
+    rules: 'domain/rules.js',
+    delivery: 'domain/rules/delivery.js',
+    onboarding: 'domain/rules/onboarding.js',
+    offboarding: 'domain/rules/offboarding.js',
+    deadlines: 'domain/deadlines.js',
+    evidence: 'domain/evidence.js',
+  })) {
+    const response = await fetch(base + '/api/source/' + key);
+    assert.equal(response.status, 200);
+    const file = await response.json();
+    assert.equal(file.path, path);
+    assert.ok(file.content.length > 0);
+  }
   for (const key of ['http', 'app', '__proto__', 'package.json']) {
     const hidden = await fetch(base + '/api/source/' + key);
     assert.equal(hidden.status, 404);
@@ -155,6 +169,12 @@ test('static delivery serves explicit public files and denies directory traversa
   assert.equal(page.status, 200);
   assert.match(page.headers.get('content-type'), /text\/html; charset=utf-8/);
   assert.equal(page.headers.get('cache-control'), 'no-store');
+  assert.match(await page.text(), /<script[^>]+type="module"/);
+  for (const file of ['logic-view.js', 'logic-guide.js']) {
+    const module = await fetch(base + '/' + file + '?v=4');
+    assert.equal(module.status, 200);
+    assert.match(module.headers.get('content-type'), /text\/javascript/);
+  }
   const script = await fetch(base + '/app.js?v=test');
   assert.equal(script.status, 200);
   assert.equal(script.headers.get('cache-control'), 'public, max-age=3600');

@@ -1,16 +1,12 @@
+import { logicRoute, logicView } from './logic-view.js?v=4';
+import { logicText } from './logic-guide.js?v=4';
+
 const main = document.querySelector('main');
 const h = value => String(value ?? '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[char]);
 const caseUrl = id => `#/cases/${encodeURIComponent(id)}`;
 const ruleUrl = id => `#/logic?file=rules&rule=${encodeURIComponent(id)}`;
 const priorities = {urgent:'Сейчас',today:'Сегодня','before-start':'До срока',done:'В порядке'};
 const checkLabels = {met:'Подтверждено',missing:'Не выполнено',unknown:'Нет данных'};
-const files = {
-  rules: {name:'Бизнес-правила',description:'Факты и время снимка → решение, приоритет, проверки и условия снятия задачи.',input:'Один случай + время снимка',output:'Объяснимое решение без побочных эффектов'},
-  service: {name:'Сборка сводки',description:'Серверный сценарий: проверить вход, применить правила, упорядочить случаи и посчитать итоги.',input:'Снимок CRM и переписки',output:'Очередь действий и агрегаты'},
-  validation: {name:'Проверка входа',description:'Некорректные типы, даты и повторяющиеся ID дают явную ошибку до расчёта.',input:'JSON из HTTP-запроса',output:'Проверенный снимок или ошибка с полем'},
-  tests: {name:'Тесты решений',description:'Проверки бизнес-инвариантов: что действительно меняет вывод и что не должно его менять.',input:'Пограничные и обычные сценарии',output:'Проверка ожидаемого поведения'},
-  prompt: {name:'Контракт извлечения',description:'Спецификация будущего извлечения фактов из сообщений. Модель в этом демо не вызывается.',input:'Связанные сообщения и их источники',output:'Структурированные факты для правил'},
-};
 const sourceCache = new Map();
 const drafts = new Map();
 const comparisons = new Map();
@@ -26,11 +22,11 @@ let toastTimer;
 function route() {
   const hash = location.hash.slice(1);
   if (!hash || hash === 'summary' || hash === '/summary' || hash === 'main' || hash === 'data') return {name:'summary'};
-  if (hash === 'code') return {name:'logic',file:'rules'};
+  if (hash === 'code') return logicRoute(new URLSearchParams());
   const [path, query] = hash.split('?');
   if (path === '/logic') {
     const params = new URLSearchParams(query);
-    return {name:'logic',file:Object.hasOwn(files,params.get('file')) ? params.get('file') : 'rules',rule:params.get('rule')};
+    return logicRoute(params);
   }
   if (path.startsWith('/cases/')) {
     try { return {name:'case',id:decodeURIComponent(path.slice(7))}; }
@@ -219,19 +215,6 @@ function detailView(id) {
   </section>`;
 }
 
-function logicView(current) {
-  const file=files[current.file];
-  return `<section aria-labelledby="page-title"><div class="heading-row"><div><div class="eyebrow">Устройство решения</div><h1 id="page-title">Бизнес-логика, которую можно проверить</h1><p class="subtitle">Здесь те же исходники, которые сервер использует для расчёта сводки.</p></div><div class="heading-actions"><a class="btn" href="https://github.com/balkhaev/demo-test" target="_blank" rel="noopener">GitHub ↗</a><a class="btn btn-primary" href="https://github.com/balkhaev/demo-test/archive/refs/heads/main.zip">Скачать проект ↓</a></div></div>
-    <div class="logic-flow" aria-label="Порядок обработки"><div><span>01</span><strong>Проверить вход</strong><p>Типы, даты, ID и полнота</p></div><div><span>02</span><strong>Применить правила</strong><p>Факты и время снимка</p></div><div><span>03</span><strong>Собрать очередь</strong><p>Приоритет и объяснение</p></div><div><span>04</span><strong>Проверить человеком</strong><p>Подтвердить и действовать</p></div></div>
-    <div class="business-code-layout"><nav class="file-nav" aria-label="Бизнес-код">${Object.entries(files).map(([key,entry])=>`<a href="#/logic?file=${key}" class="${key===current.file?'active':''}" ${key===current.file?'aria-current="page"':''}>${entry.name}<span>→</span></a>`).join('')}<div class="code-boundary"><strong>Граница ответственности</strong><p>UI отправляет снимок и показывает ответ. Приоритет вычисляет сервер. Внешние системы не изменяются.</p></div></nav>
-    <div class="source-view"><div class="source-description"><h2>${file.name}</h2><p>${file.description}</p><dl><div><dt>Вход</dt><dd>${file.input}</dd></div><div><dt>Выход</dt><dd>${file.output}</dd></div></dl></div>
-    ${current.rule?`<div class="rule-target">Из решения: <code>${h(current.rule)}</code><button data-action="find-rule">Найти в коде ↓</button></div>`:''}
-    <div class="code-box"><div class="code-bar"><span id="source-path">Загрузка исходника…</span><div class="code-actions"><button data-action="copy-code" disabled>Копировать</button><button data-action="download-code" disabled>Скачать ↓</button></div></div><pre class="code-content numbered-code" id="code-content" tabindex="0" aria-label="Исходный код" aria-busy="true">Получаем файл с сервера…</pre></div></div></div>
-    <div class="implementation-notes"><section><h2>Работает в демо</h2><p>HTTP API, строгая проверка входа, расчёт сроков относительно снимка, трасса правил, проверка противоречий и тесты. Сервер не хранит общий изменяемый снимок: каждый запрос независим.</p></section><section><h2>Следующий шаг к рабочему запуску</h2><p>Адаптеры CRM и чатов, сопоставление по ID и сохранение ссылок на источники. Извлечение фактов моделью — по отдельному контракту. Сначала сверка с ручной работой на реальных данных, затем измерение пропусков и времени подготовки.</p></section></div>
-    <details class="launch"><summary>API и воспроизведение</summary><p><code>GET /api/demo</code> — исходный снимок и рассчитанная сводка. <code>POST /api/evaluate</code> — новый расчёт тела <code>{ asOf, cases }</code>. <code>GET /api/health</code> — доступность сервера.</p><p>Запуск и полный контракт описаны в README. <code>npm test</code> проверяет доменные правила и HTTP API. Проект не требует сторонних npm-пакетов.</p></details>
-  </section>`;
-}
-
 function missingView() {
   return '<section class="empty-state"><h1>Случай не найден</h1><p>Откройте один из случаев в текущей сводке.</p><a class="btn btn-primary" href="#/summary">Вернуться к сводке</a></section>';
 }
@@ -247,6 +230,7 @@ async function loadSource(current,version) {
     pre.innerHTML=source.content.split('\n').map((line,index)=>`<span class="code-line ${current.rule&&line.includes(current.rule)?'highlight-line':''}"><span class="line-number" aria-hidden="true">${index+1}</span><span>${h(line)||' '}</span></span>`).join('');
     pre.setAttribute('aria-busy','false');
     for(const button of main.querySelectorAll('[data-action="copy-code"],[data-action="download-code"]')) button.disabled=false;
+    if(current.rule) main.querySelector('.highlight-line')?.scrollIntoView({block:'center'});
   } catch(cause) {
     if(version!==renderVersion) return;
     document.querySelector('#code-content').textContent='Не удалось получить исходник. '+cause.message+' Файл также доступен в GitHub.';
@@ -265,12 +249,15 @@ function render(focusTarget) {
     if(active) link.setAttribute('aria-current','page'); else link.removeAttribute('aria-current');
   }
   document.querySelector('#nav-count').textContent=model?.counts.attention??'—';
-  if(!model) {
+  if(!model && current.name !== 'logic') {
     main.innerHTML=error?`<section class="empty-state" role="alert"><h1>Сервер пока недоступен</h1><p>${h(error.message)}</p><button class="btn btn-primary" data-action="retry">Повторить запрос</button></section>`:'<div class="loading-state" role="status">Получаем сводку с сервера…</div>';
     return;
   }
   main.innerHTML=current.name==='summary'?summaryView():current.name==='case'?detailView(current.id):current.name==='logic'?logicView(current):missingView();
-  if(current.name==='logic') void loadSource(current,renderVersion);
+  if(current.name==='logic' && current.source) void loadSource(current,renderVersion);
+  if(current.name==='logic' && current.rule && !current.source) {
+    main.querySelector('#selected-rule')?.scrollIntoView({block:'center'});
+  }
   if(focusTarget) main.querySelector(focusTarget)?.focus({preventScroll:true});
 }
 
@@ -293,6 +280,7 @@ main.addEventListener('click',async event=>{
     await evaluate(current.id);
   } else if(action==='copy-case') await copyText(taskText(model.summary.find(item=>item.id===button.dataset.id)),'Задача скопирована');
   else if(action==='copy-summary') await copyText(model.summary.map(taskText).join('\n\n'),'Полная сводка скопирована');
+  else if(action==='copy-logic') await copyText(logicText(current.topic),'Псевдокод скопирован');
   else if(action==='copy-code'&&loadedSource) await copyText(loadedSource.content,'Бизнес-код скопирован');
   else if(action==='download-code'&&loadedSource) {
     const url=URL.createObjectURL(new Blob([loadedSource.content],{type:'text/plain;charset=utf-8'}));
@@ -300,8 +288,8 @@ main.addEventListener('click',async event=>{
     link.href=url;link.download=loadedSource.path.split('/').at(-1);link.click();
     setTimeout(()=>URL.revokeObjectURL(url),1000);
   } else if(action==='find-rule') {
-    const line=main.querySelector('.highlight-line');
-    if(line) line.scrollIntoView({block:'center',behavior:'smooth'});
+    const line=main.querySelector('#selected-rule,.highlight-line');
+    if(line) { line.scrollIntoView({block:'center',behavior:'smooth'}); line.focus({preventScroll:true}); }
     else toast('Указанное правило не найдено в этом файле.');
   }
 });
@@ -338,5 +326,5 @@ main.addEventListener('change',event=>{
   render(`[data-field="${field}"]`);
 });
 
-window.addEventListener('hashchange',()=>{render();window.scrollTo({top:0});});
+window.addEventListener('hashchange',()=>{window.scrollTo({top:0});render();});
 void loadDemo();

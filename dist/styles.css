@@ -325,6 +325,33 @@ input[type="checkbox"] { accent-color: var(--green); width: 15px; height: 15px; 
 .code-line { display: grid; grid-template-columns: 42px 1fr; width: max-content; min-width: 100%; padding-right: 20px; }
 .line-number { color: #5a6c7a; font-size: 10px; text-align: right; padding-right: 13px; user-select: none; }
 .highlight-line { background: #2a493e; box-shadow: inset 3px 0 #90b291; color: #e3efdf; }
+.logic-modes { display: flex; gap: 5px; padding: 9px 12px; border: 1px solid var(--line); border-top: 0; background: #fff; }
+.logic-modes a { padding: 7px 11px; border-radius: 5px; font-size: 12px; color: var(--muted); }
+.logic-modes a[aria-current] { background: #eaf1ec; color: var(--green); font-weight: 600; }
+.pseudocode-panel { border: 1px solid var(--line); border-top: 0; border-radius: 0 0 7px 7px; background: #fff; overflow: hidden; }
+.pseudo-toolbar { padding: 13px 18px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; background: #f3f6f3; color: #526c59; font-size: 11px; }
+.pseudo-toolbar button { border: 0; background: transparent; color: var(--green); font-size: 11px; padding: 3px 0; }
+.pseudocode { margin: 0; padding: 23px; white-space: pre-wrap; overflow-wrap: anywhere; color: #284d36; font: 13px/1.95 ui-monospace, "Cascadia Code", Consolas, monospace; }
+.logic-rule { display: grid; grid-template-columns: 30px minmax(0,1fr); gap: 12px; padding: 18px; border-top: 1px solid #edf0ed; scroll-margin-top: 24px; }
+.rule-step { padding-top: 2px; color: #7d9484; font: 12px/1.8 ui-monospace, Consolas, monospace; }
+.rule-condition, .rule-outcome { font-size: 13px; line-height: 1.8; }
+.rule-condition > span, .rule-outcome > span { font: 600 11px/1.8 ui-monospace, Consolas, monospace; color: #748478; margin-right: 5px; }
+.rule-outcome { color: #285b39; margin-top: 6px; }
+.rule-note { color: var(--muted); font-size: 12px; line-height: 1.7; margin-top: 8px; }
+.rule-permalink { display: inline-block; margin-top: 10px; font: 10px/1.6 ui-monospace, Consolas, monospace; color: #748478; overflow-wrap: anywhere; }
+.rule-permalink:hover { text-decoration: underline; }
+.selected-rule { background: #eff7ef; box-shadow: inset 3px 0 #43885a; }
+.rule-selected-label { display: inline-block; margin-left: 12px; color: #285b39; font-size: 10px; }
+.logic-footnote { font-size: 11px; color: var(--muted); line-height: 1.9; padding-top: 12px; }
+.logic-footnote a { color: var(--green); text-decoration: underline; text-underline-offset: 3px; }
+.logic-next { display: flex; flex-wrap: wrap; gap: 10px; padding-top: 18px; }
+@media (max-width: 580px) {
+  .logic-rule { grid-template-columns: 20px minmax(0,1fr); gap: 8px; padding: 15px 12px; }
+  .pseudocode { padding: 17px 12px; font-size: 11px; }
+  .rule-condition, .rule-outcome { font-size: 12px; }
+  .rule-selected-label { display: block; margin: 5px 0 0; }
+  .logic-modes a { font-size: 11px; padding: 7px 9px; }
+}
 .implementation-notes { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 24px; }
 .implementation-notes h2 { font-size: 13px; margin-bottom: 8px; }
 .implementation-notes p { font-size: 12px; line-height: 1.85; color: #7a8780; }

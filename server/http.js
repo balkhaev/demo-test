@@ -7,10 +7,15 @@ import { DomainInputError } from '../domain/validation.js';
 
 const ROOT = fileURLToPath(new URL('../', import.meta.url));
 const MAX_BODY_BYTES = 64 * 1024;
-const STATIC_FILES = new Set(['index.html', 'styles.css', 'app.js']);
+const STATIC_FILES = new Set(['index.html', 'styles.css', 'app.js', 'logic-guide.js', 'logic-view.js']);
 const CONTENT_TYPES = { '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8' };
 const SOURCE_FILES = Object.freeze({
   rules: { path: 'domain/rules.js', language: 'javascript' },
+  delivery: { path: 'domain/rules/delivery.js', language: 'javascript' },
+  onboarding: { path: 'domain/rules/onboarding.js', language: 'javascript' },
+  offboarding: { path: 'domain/rules/offboarding.js', language: 'javascript' },
+  deadlines: { path: 'domain/deadlines.js', language: 'javascript' },
+  evidence: { path: 'domain/evidence.js', language: 'javascript' },
   service: { path: 'domain/brief-service.js', language: 'javascript' },
   validation: { path: 'domain/validation.js', language: 'javascript' },
   tests: { path: 'test/engine.test.mjs', language: 'javascript' },
@@ -135,7 +140,7 @@ if (process.argv[1] && pathToFileURL(resolve(process.argv[1])).href === import.m
   const port = Number(process.env.PORT ?? 80);
   if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error('PORT must be an integer between 1 and 65535');
   const server = createApp();
-  server.listen(port, '0.0.0.0', () => console.info('Support demo is listening on port ' + port));
+  server.listen(port, process.env.HOST ?? '0.0.0.0', () => console.info('Support demo is listening on port ' + port));
   for (const signal of ['SIGINT', 'SIGTERM']) process.once(signal, () => {
     server.close(() => process.exit(0));
     setTimeout(() => process.exit(1), 10_000).unref();

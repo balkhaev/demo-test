@@ -1,0 +1,51 @@
+import { deadlinePriority, deadlineReason } from '../deadlines.js';
+import { sources } from '../evidence.js';
+import { conclusion } from '../decision.js';
+
+export function onboardingRules(item, asOf) {
+  const ids = sources(item);
+  const priority = deadlinePriority(item, asOf);
+  const deadline = deadlineReason(item, asOf);
+  return [{
+    id: "ONBOARDING.DOCUMENT_GAP",
+    title: "Неполный комплект остаётся препятствием для оформления",
+    sourceIds: [ids.crm, ids.message],
+    when: () => item.crm.documents === "incomplete" || item.message.signal === "missing",
+    then: () => conclusion(priority,
+      `${deadline} Есть сведения о неполном комплекте документов.`,
+      "Уточнить перечень недостающих документов или исправлений; при расхождении проверить оба источника.",
+      "Запросить недостающее и подтвердить принятие полного комплекта до первого выхода.",
+      ["Полный комплект проверен и принят.", "Принятие зафиксировано в CRM; сообщение о недостаче проверено."]),
+  }, {
+    id: "ONBOARDING.DOCUMENTS_ACCEPTED",
+    title: "Принятые документы снимают препятствие из данного снимка",
+    sourceIds: [ids.crm, ids.message],
+    when: () => item.crm.documents === "accepted",
+    then: () => conclusion("done",
+      "Документы приняты в CRM. Других препятствий для первого выхода в предоставленных данных нет.",
+      "Дополнительная задача по этому снимку не требуется.",
+      "Не создавать задачу только из-за запланированного первого выхода.",
+      ["Полный комплект принят в CRM.", "Нет неразобранного сообщения о неполном комплекте."]),
+  }, {
+    id: "ONBOARDING.DOCUMENTS_PENDING",
+    title: "Ожидаемые документы требуют подтверждения принятия",
+    sourceIds: [ids.crm, ids.message],
+    when: () => item.crm.documents === "pending",
+    then: () => conclusion(priority,
+      `${deadline} В CRM документы ожидаются. ${item.message.signal === "sent" ? "Сообщение об отправке фотографий не подтверждает получение и принятие." : "В переписке нет подтверждающих сведений о принятии документов."}`,
+      "Проверить у руководителя получение, комплектность и пригодность документов.",
+      "Обеспечить передачу по принятому каналу, запросить недостающее и обновить CRM после проверки.",
+      ["Получение и пригодность документов проверены.", "Полный комплект принят и это зафиксировано в CRM."]),
+  }, {
+    id: "ONBOARDING.DOCUMENTS_UNKNOWN",
+    title: "Неизвестный статус документов нельзя считать принятием",
+    sourceIds: [ids.crm],
+    when: () => true,
+    then: () => conclusion(priority,
+      `${deadline} В CRM нет достоверного статуса документов.`,
+      "Уточнить наличие полного комплекта и результат его проверки у ответственного.",
+      "Восстановить подтверждённый статус документов в CRM.",
+      ["Полный комплект проверен и принят, статус зафиксирован в CRM."]),
+  }];
+}
+

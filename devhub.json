@@ -1,0 +1,17 @@
+{
+  "id": "demo-test",
+  "name": "Сводка поддержки",
+  "description": "Демо правил поддержки Руссмаркет",
+  "services": [
+    {
+      "id": "site",
+      "name": "Сводка и бизнес-логика",
+      "command": "node --watch server/http.js",
+      "env": { "HOST": "127.0.0.1", "PORT": "4176" },
+      "port": 4176,
+      "health": "/api/health",
+      "ui": [{ "label": "Бизнес-логика", "url": "/#/logic" }]
+    }
+  ],
+  "launch": { "dev": ["site"] }
+}

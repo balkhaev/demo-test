@@ -7,8 +7,8 @@ const script = `${sources['data.js'].replace('export const SAMPLE', 'const SAMPL
 new Function(script); // Parse the combined browser script without executing it.
 const safeJson = value => JSON.stringify(value).replace(/</g, '\\u003c');
 let html = await readFile('dist/index.html', 'utf8');
-html = html.replace('<link rel="stylesheet" href="styles.css">', `<style>${sources['styles.css'].replace(/^@import[^\n]+\n/, '')}</style>`);
-html = html.replace('<script type="module" src="app.js"></script>', '');
+html = html.replace(/<link rel="stylesheet" href="styles\.css(?:\?[^"]*)?">/, `<style>${sources['styles.css'].replace(/^@import[^\n]+\n/, '')}</style>`);
+html = html.replace(/<script type="module" src="app\.js(?:\?[^"]*)?"><\/script>/, '');
 html = html.replace('</body>', `<script>globalThis.__DEMO_SOURCES__=${safeJson(sources)};globalThis.__DEMO_ARCHIVE__=${safeJson(archive.toString('base64'))};</script><script type="module">${script.replace(/<\/script/gi, '<\\/script')}</script></body>`);
 if (!html.includes('<style>:root')) throw new Error('Portable stylesheet was not embedded correctly');
 await writeFile('../Russmarket_Demo.html', html);

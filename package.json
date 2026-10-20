@@ -1,0 +1,6 @@
+{
+  "name": "support-brief-demo",
+  "private": true,
+  "type": "module",
+  "scripts": { "test": "node --test", "check": "node --check dist/app.js && node --check dist/engine.js && node --test" }
+}

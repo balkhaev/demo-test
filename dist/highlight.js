@@ -1,7 +1,7 @@
 const escape = value => value.replace(/[&<>"']/g, char =>
   ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
 const JS_KEYWORDS = new Set(('import from export const let var function return if else for of in while switch case break default throw new typeof instanceof async await try catch finally class extends true false null undefined').split(' '));
-const PSEUDO_KEYWORDS = new Set(['ЕСЛИ', 'ИНАЧЕ', 'РЕШЕНИЕ', 'ДЕЙСТВИЕ', 'ПРОВЕРИТЬ']);
+const PSEUDO_KEYWORDS = new Set(['ЕСЛИ', 'ИНАЧЕ', 'ТОГДА', 'РЕШЕНИЕ', 'ДЕЙСТВИЕ', 'ПРОВЕРИТЬ']);
 
 /** Presentation-only lexer. Every source character is escaped; code is never executed. */
 export function highlight(code, language = 'javascript') {

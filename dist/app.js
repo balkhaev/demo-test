@@ -1,6 +1,6 @@
-import { logicRoute, logicView } from './logic-view.js?v=6';
-import { logicText } from './logic-guide.js?v=6';
-import { highlight } from './highlight.js?v=6';
+import { logicRoute, logicView } from './logic-view.js?v=7';
+import { logicText } from './logic-guide.js?v=7';
+import { highlight } from './highlight.js?v=7';
 
 const main = document.querySelector('main');
 const h = value => String(value ?? '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[char]);

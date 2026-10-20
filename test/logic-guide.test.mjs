@@ -126,6 +126,7 @@ test('every displayed business condition uses ordinary Russian without code nota
   for (const topic of Object.values(topics)) {
     for (const [index, rule] of (topic.rules ?? []).entries()) {
       assert.doesNotMatch(branchText(rule, index), /МОМЕНТ|ДЕНЬ_МСК|ПЕРВОЕ_ИЗВЕСТНОЕ|НЕ\s*\(|(?:crm|CRM|сообщение)\.[\p{L}_]|[<>=]/u);
+      assert.match(branchText(rule, index), /[^\n]\nТогда: [^\n]+\.(?:\nДействие: |$)/);
     }
   }
   const incomplete = topics.delivery.rules.find(rule => rule.id === 'DELIVERY.CONFIRMED');
@@ -181,9 +182,10 @@ test('nested negation and AND/OR edits generate correctly grouped positive wordi
 test('overview lists each real rule in order with a working link and follows roster edits', async () => {
   const verify = async () => {
     const { topics } = await getLogicGuide();
-    assert.deepEqual(topics.overview.preflight, topics.validation.rules);
     const html = logicView(logicRoute(new URLSearchParams(), topics), topics);
     assert.doesNotMatch(html, /ВЫБРАТЬ|из \d+ правил/);
+    assert.doesNotMatch(html, /Сначала — проверить время данных|Подробнее об этой проверке|DATA\.FUTURE_SOURCE/);
+    assert.doesNotMatch(logicText(topics, 'overview'), /Сначала для любого случая|Исправить время или пересчитать/);
     for (const group of topics.overview.groups) {
       assert.deepEqual(group.rules.map(rule => rule.id), RULE_SETS[group.key].map(rule => rule.id));
       for (const rule of group.rules) {

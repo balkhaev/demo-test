@@ -10,7 +10,7 @@ const SECTIONS = {
     name: 'Весь процесс', file: 'rules',
     input: 'Снимок CRM, сообщения и время оценки',
     output: 'Очередь с причиной, проверкой и следующим шагом',
-    note: 'Ниже перечислены все проверки в порядке выполнения. Как только условия одного правила выполнены, используем его решение и останавливаем проверку этого случая.',
+    note: 'Ниже перечислены правила для каждого вида случая в порядке выполнения. Как только условия одного правила выполнены, используем его решение и останавливаем проверку этого случая.',
   },
   delivery: {
     name: 'Поставка', file: 'delivery', example: 'П-08',
@@ -70,7 +70,6 @@ export async function getLogicGuide() {
     }
     if (key === 'prompt') topic.code = source.content;
   }));
-  topics.overview.preflight = topics.validation.rules;
   topics.overview.groups = Object.keys(RULE_SETS).map(key => ({
     key, name: topics[key].name, rules: topics[key].rules,
   }));

@@ -4,8 +4,8 @@ export function topicForRule(topics, id) {
 
 export function branchText(rule, index) {
   const condition = `${index ? 'Иначе, если' : 'Если'} ${rule.condition}`;
-  return `${condition}${condition.includes('\n') ? '' : ':'}\n\n` +
-    `Решение: ${priorityText(rule.priority)}.` +
+  return `${condition}${condition.includes('\n') ? '' : ':'}\n` +
+    `Тогда: ${priorityText(rule.priority)}.` +
     (rule.action ? `\nДействие: ${rule.action}` : '');
 }
 
@@ -22,7 +22,6 @@ export function priorityText(priority) {
 export function logicText(topics, key) {
   const topic = topics[key];
   return [topic.name, topic.note, topic.code,
-    ...(topic.preflight ?? []).map(rule => 'Сначала для любого случая:\n' + branchText(rule, 0)),
     ...(topic.groups ?? []).map(group => group.name + '\n' + group.rules.map((rule, index) =>
       `${index + 1}. ${rule.title}\n${branchText(rule, index)}\n${rule.source.url}`
     ).join('\n\n')),

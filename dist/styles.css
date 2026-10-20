@@ -351,9 +351,7 @@ input[type="checkbox"] { accent-color: var(--green); width: 15px; height: 15px; 
 .logic-overview { padding: 20px; font-size: 13px; line-height: 1.8; color: #42574a; }
 .logic-overview h3 { font-size: 14px; margin: 0 0 8px; color: #284d36; }
 .logic-overview a { color: #356947; text-decoration: underline; text-underline-offset: 3px; }
-.overview-preflight { background: #f3f7f3; padding: 16px; border-radius: 6px; }
-.overview-condition { margin: 12px 0; padding-left: 10px; border-left: 2px solid #bed4c3; }
-.overview-instruction { margin: 20px 0; }
+.overview-instruction { margin: 0 0 20px; }
 .overview-group + .overview-group { border-top: 1px solid #e5ece7; margin-top: 23px; padding-top: 20px; }
 .overview-group h3 > span { margin-left: 8px; font-size: 11px; color: #718078; font-weight: 400; }
 .overview-group ol { margin: 0; padding-left: 25px; }

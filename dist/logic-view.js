@@ -1,5 +1,5 @@
-import { topicForRule, branchText, priorityText } from './logic-guide.js?v=6';
-import { highlight } from './highlight.js?v=6';
+import { topicForRule, branchText, priorityText } from './logic-guide.js?v=7';
+import { highlight } from './highlight.js?v=7';
 
 const escape = value => String(value ?? '').replace(/[&<>"']/g, char =>
   ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
@@ -35,12 +35,7 @@ function ruleCard(rule, index, current) {
 
 function overviewView(topic) {
   return `<div class="logic-overview">
-    <section class="overview-preflight"><h3>Сначала — проверить время данных</h3>
-      <p>Для любого случая, до проверки поставки, приёма или увольнения:</p>
-      ${topic.preflight.map(rule => `<pre class="rule-code overview-condition">${highlight(branchText(rule, 0), 'pseudo')}</pre>
-        <a href="#/logic?rule=${encodeURIComponent(rule.id)}">Подробнее об этой проверке →</a>`).join('')}
-    </section>
-    <p class="overview-instruction">Если даты в порядке, выбираем вид случая. Проверяем правила по порядку: первое подходящее даёт решение, следующие уже не нужны.</p>
+    <p class="overview-instruction">Выбираем вид случая. Проверяем правила по порядку: первое подходящее даёт решение, следующие уже не нужны.</p>
     ${topic.groups.map(group => `<section class="overview-group">
       <h3><a href="#/logic?topic=${group.key}">${escape(group.name)}</a> <span>${group.rules.length} ${group.rules.length === 4 ? 'правила' : 'правил'}</span></h3>
       <ol>${group.rules.map(rule => `<li>

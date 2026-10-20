@@ -156,7 +156,7 @@ function summaryView() {
       const facts=crmFacts(item);
       return `<tr class="case-row ${h(item.priority)}"><td class="case-cell"><div class="case-top"><a class="case-id" href="${caseUrl(item.id)}">${h(item.id)}</a>${priority(item)}</div><h2 class="case-title"><a href="${caseUrl(item.id)}">${h(item.title)}</a></h2><p class="deadline">${h(deadlineText(item))}</p></td><td class="source-cell" data-label="CRM"><strong class="source-status">${h(facts.title)}</strong><p class="source-detail">${h(facts.detail)}</p></td><td class="source-cell" data-label="Переписка"><span class="message-author">${h(item.message.author)}</span><p class="message-text">«${h(item.message.text)}»</p></td><td class="action-cell"><p class="action-text">${h(item.action)}</p><a class="case-open" href="${caseUrl(item.id)}" aria-label="Разобрать случай ${h(item.id)}">Разобрать случай <span aria-hidden="true">→</span></a></td></tr>`;
     }).join('') || '<tr><td class="empty" colspan="4">В этой группе нет случаев.</td></tr>'}</tbody></table>
-    <div class="board-footer"><span><strong>${counts.attention} требуют внимания</strong> · ${counts.urgent} срочных · ${counts.done} без действий</span><a href="#/logic">Как принято решение →</a></div></div>
+    <div class="board-footer"><span><strong>Требуют внимания: ${counts.attention}</strong> · Срочных: ${counts.urgent} · Без действий: ${counts.done}</span><a href="#/logic">Как принято решение →</a></div></div>
     <p class="quick-tip">Это фиксированный учебный снимок. Сроки считаются относительно него, а изменения действуют только в вашей вкладке.</p>
   </section>`;
 }
@@ -171,8 +171,8 @@ function sourceCard(item,type) {
 }
 
 function checkList(item) {
-  return `<section class="panel"><div class="panel-heading"><h2>Что проверили правила</h2><span class="subtle">${item.checks.length} проверок</span></div><ul class="check-list">${item.checks.map(check=>`<li><span class="check-state ${h(check.status)}" aria-hidden="true">${check.status==='met'?'✓':check.status==='missing'?'!':'?'}</span><div><strong>${h(check.label)}</strong><span class="check-origin">${h(check.sourceIds.join(' · '))}</span></div><span class="check-label ${h(check.status)}">${checkLabels[check.status]}</span></li>`).join('')}</ul>
-    <details class="rule-trace"><summary>Путь принятия решения · ${item.trace.length} правил</summary><ol>${item.trace.map(step=>`<li class="${step.matched?'matched':''}"><span class="trace-result">${step.matched?'Сработало':'Не сработало'}</span><strong>${h(step.title)}</strong><code>${h(step.ruleId)}</code></li>`).join('')}</ol><p class="field-help">Правила проверяются по порядку до первого совпадения.</p></details></section>`;
+  return `<section class="panel"><div class="panel-heading"><h2>Что проверили правила</h2><span class="subtle">Проверок: ${item.checks.length}</span></div><ul class="check-list">${item.checks.map(check=>`<li><span class="check-state ${h(check.status)}" aria-hidden="true">${check.status==='met'?'✓':check.status==='missing'?'!':'?'}</span><div><strong>${h(check.label)}</strong><span class="check-origin">${h(check.sourceIds.join(' · '))}</span></div><span class="check-label ${h(check.status)}">${checkLabels[check.status]}</span></li>`).join('')}</ul>
+    <details class="rule-trace"><summary>Путь принятия решения · шагов: ${item.trace.length}</summary><ol>${item.trace.map(step=>`<li class="${step.matched?'matched':''}"><span class="trace-result">${step.matched?'Сработало':'Не сработало'}</span><strong>${h(step.title)}</strong><code>${h(step.ruleId)}</code></li>`).join('')}</ol><p class="field-help">Правила проверяются по порядку до первого совпадения.</p></details></section>`;
 }
 
 function selectField(id,label,field,value,options) {
@@ -215,7 +215,7 @@ function detailView(id) {
     <aside class="detail-side"><section class="panel action-panel"><p class="mini-title">Следующий шаг</p><h2>${item.needsAttention?'Что сделать':'Действие не требуется'}</h2><p class="recommended-action">${h(item.action)}</p><div class="verify-note"><strong>Перед действием</strong><p>${h(item.check)}</p></div><h3>Условия снятия задачи</h3><ul class="closure-list">${item.closureConditions.map(condition=>`<li>${h(condition)}</li>`).join('')}</ul></section>
     ${item.uncertainties.length?`<section class="uncertainty-panel"><h2>Что пока неизвестно</h2><ul>${item.uncertainties.map(value=>`<li>${h(value.text)}</li>`).join('')}</ul></section>`:''}</aside></div>
     ${scenarioPanel(item)}
-    <details class="api-details"><summary>Ответ API для этого случая <span>JSON · правило ${h(model.rulesVersion)}</span></summary><pre>${h(JSON.stringify(item,null,2))}</pre></details>
+    <details class="api-details"><summary>Ответ API для этого случая <span>JSON · версия правил ${h(model.rulesVersion)}</span></summary><pre>${h(JSON.stringify(item,null,2))}</pre></details>
   </section>`;
 }
 

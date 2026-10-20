@@ -143,6 +143,39 @@ test("a receipt requires independent CRM confirmation and a recorded time", () =
   assert.equal(evaluate(item).ruleId, "DELIVERY.CONFIRMED");
 });
 
+test("missing receipt evidence cannot produce a green source-consistency check", () => {
+  const item = sampleCase("П-08");
+  let result = evaluate(item);
+  assert.equal(result.ruleId, "DELIVERY.DELAY");
+  assert.equal(result.checks.find(({ id }) => id === "receipt-recorded").status, "missing");
+  assert.equal(result.checks.find(({ id }) => id === "delivery-consistency").status, "unknown");
+  item.message.signal = "received";
+  result = evaluate(item);
+  assert.equal(result.checks.find(({ id }) => id === "delivery-consistency").status, "unknown");
+  item.message.signal = "missing";
+  result = evaluate(item);
+  assert.equal(result.checks.find(({ id }) => id === "delivery-consistency").status, "missing");
+});
+
+test("a confirmed delivery resolves delay without requiring a new agreed deadline", () => {
+  const item = sampleCase("П-08");
+  const delayed = evaluate(item);
+  assert.ok(delayed.closureConditions.some(condition => /факт и время приёмки/i.test(condition)));
+  assert.ok(delayed.closureConditions.some(condition => /Нет сообщения о недостаче/.test(condition)));
+  assert.ok(delayed.closureConditions.every(condition => !/Новый срок согласован/.test(condition)));
+  const originalDeadline = item.dueAt;
+  item.crm.completed = true;
+  item.crm.receivedAt = "2026-10-19T09:50:00+03:00";
+  item.message.signal = "received";
+  item.message.text = "Карты получили, количество проверили.";
+  item.message.notBefore = null;
+  const received = evaluate(item);
+  assert.equal(received.priority, "done");
+  assert.equal(received.ruleId, "DELIVERY.CONFIRMED");
+  assert.equal(received.dueAt, originalDeadline);
+  assert.ok(received.checks.every(({ status }) => status === "met"));
+});
+
 test("a reported shortage reopens a confirmed delivery", () => {
   const item = sampleCase("П-09");
   item.message.signal = "missing";

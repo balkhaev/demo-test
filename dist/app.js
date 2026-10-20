@@ -168,7 +168,7 @@ async function loadCode(version) {
   try {
     let code = bundledSources?.[file];
     if (code === undefined) {
-      const response = await fetch(file);
+      const response = await fetch(`${file}?v=20261020-compact`);
       if (!response.ok) throw new Error('File unavailable');
       code = await response.text();
     }
